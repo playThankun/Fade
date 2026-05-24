@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.UUID;
 
@@ -70,7 +71,6 @@ public class FadeEntityRenderMixin {
             return;
         }
 
-        // 설정창 구조에 맞춰 단 하나의 Cull Distance로 연산
         FadeConfigScreen.OperationMode currentMode = FadeConfigScreen.OPERATION_MODE.get();
         double minDistance = FadeConfigScreen.PLAYER_CULL_DISTANCE.get(); 
         double limitDistanceSq = minDistance * minDistance;
@@ -85,7 +85,6 @@ public class FadeEntityRenderMixin {
             }
         }
 
-        // 타겟 필터링
         FadeConfigScreen.CullTarget targetMode = FadeConfigScreen.CULL_TARGET.get();
 
         boolean shouldApplyCull = switch (targetMode) {
@@ -97,7 +96,20 @@ public class FadeEntityRenderMixin {
                 if (isItemEntity && FadeConfig.customFilterString.contains("item")) {
                     yield true;
                 }
-                yield FadeFilterUtil.matchesCustomFilter(renderState, isPlayer);
+                
+                String entityId = null;
+                if (isPlayer) {
+                    entityId = "minecraft:player";
+                } else if (renderState.entityType != null) {
+                    entityId = BuiltInRegistries.ENTITY_TYPE.getKey(renderState.entityType).toString(); 
+                }
+
+                if (entityId == null) {
+                    entityId = renderState.getClass().getSimpleName().toLowerCase()
+                            .replace("renderstate", "")
+                            .replace("state", "");
+                }
+                yield FadeFilterUtil.matchesCustomFilter(entityId, isPlayer);
             }
         };
 
@@ -105,17 +117,15 @@ public class FadeEntityRenderMixin {
             return;
         }
 
-        // 실행 모드
         FadeConfigScreen.CullMode mode = FadeConfigScreen.CULL_MODE.get();
 
         switch (mode) {
-            case VANISH -> ci.cancel(); // ⚡ VANISH일 때는 몹/아이템 상관없이 싹 제거
+            case VANISH -> ci.cancel();
             
             case FADE -> {
                 if (renderState instanceof LivingEntityRenderState livingState) {
-                    livingState.isInvisible = true; // ⚡ 일반 몹은 뼈대 투명화 적용
+                    livingState.isInvisible = true;
                 } else if (isItemEntity) {
-                    // 💡 [수정] 아이템 엔티티는 FADE 모드일 때도 VANISH처럼 강제로 렌더 패스를 드롭시킵니다.
                     ci.cancel(); 
                 }
             }

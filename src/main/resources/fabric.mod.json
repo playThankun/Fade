@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "fade",
-	"version": "1.0.0-alpha-4.1",
+	"version": "1.0.0-alpha-4.2",
 	"name": "Fade",
 	"description": "Hides entities within a specific block range.",
 	"authors": [
