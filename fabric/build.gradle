@@ -1,0 +1,121 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${fabric_loom_version}"
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+repositories {
+    maven { url = "https://maven.terraformersmc.com/releases/" }
+    maven { url = "https://api.modrinth.com/maven" }
+}
+
+sourceSets {
+    server {
+        java {
+            srcDirs = ['src/server/java']
+        }
+        resources {
+            srcDirs = ['src/server/resources']
+        }
+
+        compileClasspath += main.compileClasspath + main.output
+        runtimeClasspath += main.runtimeClasspath + main.output
+    }
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+            sourceSet sourceSets.server
+        }
+    }
+
+    runs {
+        client {
+            client()
+            runDir "run"
+            ideConfigGenerated = true
+        }
+        server {
+            server()
+            runDir "run"
+            ideConfigGenerated = true
+
+            programArgs "nogui"
+            source sourceSets.server
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.fabric_minecraft_version}"
+    
+    implementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    
+    implementation "com.terraformersmc:modmenu:18.0.0-beta.1"
+    implementation "maven.modrinth:sodium:mc26.1.2-0.8.12-fabric"
+}
+
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.withType(Copy).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+processResources {
+    def version = project.version
+    inputs.property "version", version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": version
+    }
+}
+
+processResources.dependsOn(processServerResources)
+processResources {
+    from(sourceSets.server.resources) {
+        include "**/*"
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 25
+    it.options.encoding = 'UTF-8'
+}
+
+java {
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+    def projectName = project.name
+    inputs.property "projectName", projectName
+
+    from("LICENSE") {
+        rename { "${it}_$projectName" }
+    }
+}
+
+jar.dependsOn(serverClasses)
+jar {
+    from sourceSets.server.output
+}
+
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            from components.java
+        }
+    }
+}

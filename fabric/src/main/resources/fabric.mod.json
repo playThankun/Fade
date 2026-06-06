@@ -1,0 +1,54 @@
+{
+	"schemaVersion": 1,
+	"id": "fade",
+	"version": "1.0.0-pre-2",
+	"name": "Fade",
+	"description": "Hides entities within a specific block range.",
+	"authors": [
+		"Thankun"
+	],
+	
+	"contact": {
+		"homepage": "https://modrinth.com/mod/fade",
+		"sources": "https://github.com/playThankun/Fade",
+        "issues": "https://github.com/playThankun/Fade/issues"
+	},
+	"license": "MIT",
+	"icon": "assets/fade/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.thankun.fade.Fade"
+		],
+		"client": [
+			"com.thankun.fade.client.FadeClient"
+		],
+		"server": [
+			"com.thankun.fade.FadeServer"
+		],
+		"modmenu": [
+            "com.thankun.fade.client.FadeModMenuImpl"
+        ],
+		"sodium:config_api_user": [
+        "com.thankun.fade.client.config.FadeSodiumConfig"
+    ]
+	},
+	"mixins": [
+		"fade.mixins.json",
+		{
+			"config": "fade.client.mixins.json",
+			"environment": "client"
+		}
+		,
+		{
+			"config": "fade.server.mixins.json",
+			"environment": "server"
+		}
+	],
+	"depends": {
+		"fabricloader": "*",
+		"minecraft": "*",
+		"java": "*",
+		"fabric-api": "*"
+	}
+}

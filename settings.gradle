@@ -1,13 +1,13 @@
 pluginManagement {
-	repositories {
-		maven {
-			name = 'Fabric'
-			url = 'https://maven.fabricmc.net/'
-		}
-		mavenCentral()
-		gradlePluginPortal()
-	}
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        maven { name = "Fabric"; url = uri("https://maven.fabricmc.net/") }
+        maven { name = "NeoForge"; url = uri("https://maven.neoforged.net/releases/") }
+    }
+    // plugins 블록을 완전히 삭제하세요! 
+    // 개별 모듈(neoforge, fabric)의 build.gradle에서 필요한 플러그인을 직접 로드할 것입니다.
 }
 
-// Should match your modid
-rootProject.name = 'fade'
+rootProject.name = "fade-template-26.1.2"
+include("fabric")
